@@ -6,6 +6,12 @@ class LinkedPair:
         self.key = key
         self.value = value
         self.next = None
+    
+    def __str__(self): 
+        return f"Key: {self.key}, Value: {self.value}, Next: {self.next}"
+
+    def __repr__(self):
+        return f"Key: {self.key}, Value: {self.value}, Next: {self.next}"
 
 class HashTable:
     '''
@@ -15,7 +21,7 @@ class HashTable:
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
-
+        self.count = 0
 
     def _hash(self, key):
         '''
@@ -23,8 +29,7 @@ class HashTable:
 
         You may replace the Python hash with DJB2 as a stretch goal.
         '''
-        return hash(key)
-
+        return self._hash_djb2(key)
 
     def _hash_djb2(self, key):
         '''
@@ -32,8 +37,11 @@ class HashTable:
 
         OPTIONAL STRETCH: Research and implement DJB2
         '''
-        pass
+        hash = 5381
+        for x in key:
+            hash = ((hash << 5) + hash) + ord(x)
 
+        return hash & 0xFFFFFFFF
 
     def _hash_mod(self, key):
         '''
@@ -41,7 +49,6 @@ class HashTable:
         within the storage capacity of the hash table.
         '''
         return self._hash(key) % self.capacity
-
 
     def insert(self, key, value):
         '''
@@ -51,8 +58,15 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        if self.count >= self.capacity:
+            self.resize()
+        
+        index = self._hash_mod(key)
+        if self.storage[index]:
+            self.storage[index].value = value
 
+        self.storage[index] = LinkedPair(key, value)
+        self.count += 1
 
 
     def remove(self, key):
@@ -63,7 +77,11 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        if self.storage[index]:
+            self.storage[index] = None
+        else:
+            print('warning key not found')
 
 
     def retrieve(self, key):
@@ -74,7 +92,11 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        if self.storage[index]:
+            return self.storage[index].value
+        else: 
+            return None
 
 
     def resize(self):
@@ -84,7 +106,17 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        if self.count < self.capacity:
+            return
+        
+        self.capacity *= 2
+        new_storage = [None] * self.capacity
+
+        for x in range(len(self.storage)):
+            if self.storage[x]:
+                index = self._hash_mod(self.storage[x].key)
+                new_storage[index] = self.storage[x]
+        self.storage = new_storage
 
 
 
